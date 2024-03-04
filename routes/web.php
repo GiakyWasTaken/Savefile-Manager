@@ -40,3 +40,7 @@ Route::post('/calculate', function () {
 Route::get('/database', function () {
     return view('database');
 });
+
+Route::get('/savefile', function () {
+    return view('savefile');
+});
