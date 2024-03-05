@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Savefile;
+use App\Http\Controllers\SavefileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,27 +24,8 @@ Route::get('/database', function () {
     return view('database');
 });
 
-Route::get('/savefile', function () {
-    return Savefile::all();
-});
-
-Route::get('/savefile/{id}', function ($id) {
-    return Savefile::find($id);
-});
-
-Route::post('/savefile', function (Request $request) {
-    return Savefile::create($request->all());
-});
-
-Route::put('/savefile/{id}', function (Request $request, $id) {
-    $savefile = Savefile::findOrFail($id);
-    $savefile->update($request->all());
-
-    return $savefile;
-});
-
-Route::delete('/savefile/{id}', function ($id) {
-    Savefile::find($id)->delete();
-
-    return 204;
-});
+Route::get('savefile', [SavefileController::class, 'index']);
+Route::get('savefile/{id}', [SavefileController::class, 'show']);
+Route::post('savefile', [SavefileController::class, 'store']);
+Route::put('savefile/{id}', [SavefileController::class, 'update']);
+Route::delete('savefile/{id}', [SavefileController::class, 'delete']);

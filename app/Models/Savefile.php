@@ -10,4 +10,11 @@ class Savefile extends Model
     use HasFactory;
 
     protected $table = 'savefile';
+
+    protected $fillable = [
+        'file_name',
+        'created_at',
+        'updated_at',
+        'fk_id_game',
+    ];
 }
