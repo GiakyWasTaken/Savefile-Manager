@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Models\Savefile;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,4 +21,29 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::get('/database', function () {
     return view('database');
+});
+
+Route::get('/savefile', function () {
+    return Savefile::all();
+});
+
+Route::get('/savefile/{id}', function ($id) {
+    return Savefile::find($id);
+});
+
+Route::post('/savefile', function (Request $request) {
+    return Savefile::create($request->all());
+});
+
+Route::put('/savefile/{id}', function (Request $request, $id) {
+    $savefile = Savefile::findOrFail($id);
+    $savefile->update($request->all());
+
+    return $savefile;
+});
+
+Route::delete('/savefile/{id}', function ($id) {
+    Savefile::find($id)->delete();
+
+    return 204;
 });
