@@ -10,4 +10,10 @@ class Game extends Model
     use HasFactory;
 
     protected $table = 'game';
+
+    protected $fillable = [
+        'name',
+        'created_at',
+        'updated_at',
+    ];
 }

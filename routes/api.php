@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Savefile;
 use App\Http\Controllers\SavefileController;
+use App\Http\Controllers\GameController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,3 +30,9 @@ Route::get('savefile/{id}', [SavefileController::class, 'show']);
 Route::post('savefile', [SavefileController::class, 'store']);
 Route::put('savefile/{id}', [SavefileController::class, 'update']);
 Route::delete('savefile/{id}', [SavefileController::class, 'delete']);
+
+Route::get('/game', [GameController::class, 'index']);
+Route::get('/game/{id}', [GameController::class, 'show']);
+Route::post('/game', [GameController::class, 'store']);
+Route::put('/game/{id}', [GameController::class, 'update']);
+Route::delete('/game/{id}', [GameController::class, 'delete']);
