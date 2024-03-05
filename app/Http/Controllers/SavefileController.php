@@ -15,7 +15,13 @@ class SavefileController extends Controller
 
     public function show($id)
     {
-        return Savefile::find($id);
+        $savefile = Savefile::find($id);
+
+        if (!$savefile) {
+            return response('Savefile not found', 404);
+        }
+
+        return Storage::download($savefile->file_name);
     }
 
     public function store(Request $request)
