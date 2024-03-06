@@ -29,18 +29,26 @@ class SavefileController extends Controller
         // Validate the request
         $request->validate([
             'savefile' => 'required|file',
+            'file_name' => 'string',
             'fk_id_game' => 'integer'
         ]);
 
-        $savefile_name = $request->file('savefile')->getClientOriginalName();
+        // Set the file name
+        if ($request->has('file_name')) {
+            $savefile_name = $request->file_name;
+        } else {
+            // If no file name is provided, use the original file name
+            $savefile_name = $request->file('savefile')->getClientOriginalName();
+            $request->merge(['file_name' => $savefile_name]);
+        }
 
-        // Check if the file already exists on the server
-        if (Storage::exists('saves/' . $savefile_name)) {
-            return response('The file already exists on the server', 409);
+        // Check if the file already exists on the server or in the database
+        if (Storage::exists('saves/' . $savefile_name) || Savefile::where('file_name', $savefile_name)->exists()) {
+            return response('A file with that name already exists', 400);
         }
 
         // Save the file to the server
-        $path = Storage::putFileAs(
+        Storage::putFileAs(
             'saves',
             $request->file('savefile'),
             $savefile_name
@@ -48,7 +56,7 @@ class SavefileController extends Controller
 
         // Save the file to the database
         $savefile = Savefile::create([
-            'file_name' => $path,
+            'file_name' => $savefile_name,
             'fk_id_game' => $request->fk_id_game,
         ]);
 
@@ -59,8 +67,30 @@ class SavefileController extends Controller
 
     public function update($id, Request $request)
     {
+        // Validate the request
+        $request->validate([
+            'savefile' => 'required|file',
+            'fk_id_game' => 'integer'
+        ]);
+
+        // Get the savefile name from the database
         $savefile = Savefile::findOrFail($id);
-        $savefile->update($request->all());
+        $savefile_name = $savefile->file_name;
+
+        // Update the file on the server without changing the file name
+        Storage::delete('saves/' . $savefile_name);
+        Storage::putFileAs(
+            'saves',
+            $request->file('savefile'),
+            $savefile_name
+        );
+
+        // Update the game ID if provided
+        if ($request->fk_id_game != null) {
+            $savefile->update([
+                'fk_id_game' => $request->fk_id_game,
+            ]);
+        }
 
         // To-do: backup the old savefile before updating it
 
@@ -69,8 +99,14 @@ class SavefileController extends Controller
 
     public function delete($id)
     {
-        Savefile::find($id)->delete();
+        try {
+            $savefile = Savefile::findOrFail($id);
+            Storage::delete('saves/' . $savefile->file_name);
+            $savefile->delete();
+        } catch (\Exception $e) {
+            return response('Savefile not found', 404);
+        }
 
-        return 204;
+        return response('Savefile deleted', 200);
     }
 }
