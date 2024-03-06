@@ -8,12 +8,12 @@ use App\Models\Savefile;
 
 class SavefileController extends Controller
 {
-    public function index()
+    public function list()
     {
         return Savefile::all();
     }
 
-    public function show($id)
+    public function get($id)
     {
         $savefile = Savefile::find($id);
 

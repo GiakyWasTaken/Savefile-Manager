@@ -25,14 +25,14 @@ Route::get('/database', function () {
     return view('database');
 });
 
-Route::get('savefile', [SavefileController::class, 'index']);
-Route::get('savefile/{id}', [SavefileController::class, 'show']);
+Route::get('savefile', [SavefileController::class, 'list']);
+Route::get('savefile/{id}', [SavefileController::class, 'get']);
 Route::post('savefile', [SavefileController::class, 'store']);
 Route::put('savefile/{id}', [SavefileController::class, 'update']);
 Route::delete('savefile/{id}', [SavefileController::class, 'delete']);
 
 Route::get('/game', [GameController::class, 'index']);
 Route::get('/game/{id}', [GameController::class, 'show']);
-Route::post('/game', [GameController::class, 'store']);
+Route::post('/game', [GameController::class, 'create']);
 Route::put('/game/{id}', [GameController::class, 'update']);
 Route::delete('/game/{id}', [GameController::class, 'delete']);

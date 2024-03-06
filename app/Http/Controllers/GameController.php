@@ -17,7 +17,7 @@ class GameController extends Controller
         return Game::find($id);
     }
 
-    public function store(Request $request)
+    public function create(Request $request)
     {
         return Game::create($request->all());
     }

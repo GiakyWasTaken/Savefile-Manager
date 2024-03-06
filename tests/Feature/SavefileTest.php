@@ -20,7 +20,7 @@ class SavefileTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_view_savefile(): void
+    public function test_get_savefile(): void
     {
         $response = $this->get('/api/savefile/1');
 
