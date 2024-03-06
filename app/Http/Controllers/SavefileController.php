@@ -21,7 +21,7 @@ class SavefileController extends Controller
             return response('Savefile not found', 404);
         }
 
-        return Storage::download($savefile->file_name);
+        return Storage::download('saves/' . $savefile->file_name);
     }
 
     public function store(Request $request)
