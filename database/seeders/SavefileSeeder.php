@@ -15,10 +15,11 @@ class SavefileSeeder extends Seeder
     public function run(): void
     {
         $faker = \Faker\Factory::create();
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             // Save a file on the database
             $file_name = $faker->word . '.' . $faker->fileExtension;
             Savefile::create([
+                'id' => $i,
                 'file_name' => $file_name,
                 'created_at' => $faker->dateTimeThisYear,
                 'updated_at' => $faker->dateTimeThisYear,
