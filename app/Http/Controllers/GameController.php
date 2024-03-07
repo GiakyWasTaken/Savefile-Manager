@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Game;
+use Illuminate\Support\Facades\DB;
 
 class GameController extends Controller
 {
@@ -19,21 +20,27 @@ class GameController extends Controller
 
     public function create(Request $request)
     {
-        return Game::create($request->all());
+        return DB::transaction(function () use ($request) {
+            return Game::create($request->all());
+        });
     }
 
     public function update($id, Request $request)
     {
-        $game = Game::findOrFail($id);
-        $game->update($request->all());
+        return DB::transaction(function () use ($id, $request) {
+            $game = Game::findOrFail($id);
+            $game->update($request->all());
 
-        return $game;
+            return $game;
+        });
     }
 
     public function delete($id)
     {
-        Game::find($id)->delete();
+        return DB::transaction(function () use ($id) {
+            Game::find($id)->delete();
 
-        return 204;
+            return 204;
+        });
     }
 }

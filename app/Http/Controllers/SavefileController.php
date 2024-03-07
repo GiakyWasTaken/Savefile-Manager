@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Savefile;
+use Illuminate\Support\Facades\DB;
 
 class SavefileController extends Controller
 {
@@ -47,22 +48,33 @@ class SavefileController extends Controller
             return response('A file with that name already exists', 400);
         }
 
-        // Save the file to the server
-        Storage::putFileAs(
-            'saves',
-            $request->file('savefile'),
-            $savefile_name
-        );
+        // Start a database transaction
+        DB::beginTransaction();
 
-        // Save the file to the database
-        $savefile = Savefile::create([
-            'file_name' => $savefile_name,
-            'fk_id_game' => $request->fk_id_game,
-        ]);
+        try {
+            // Save the file to the server
+            Storage::putFileAs(
+                'saves',
+                $request->file('savefile'),
+                $savefile_name
+            );
 
-        // To-do: backup the old savefile before overwriting it
+            // Save the file to the database within the transaction
+            $savefile = Savefile::create([
+                'file_name' => $savefile_name,
+                'fk_id_game' => $request->fk_id_game,
+            ]);
 
-        return $savefile;
+            // Commit the transaction
+            DB::commit();
+
+            return $savefile;
+
+        } catch (\Exception $e) {
+            // Rollback the transaction if an exception occurs
+            DB::rollback();
+            return response('An error occurred while saving the file', 500);
+        }
     }
 
     public function update($id, Request $request)
@@ -77,36 +89,64 @@ class SavefileController extends Controller
         $savefile = Savefile::findOrFail($id);
         $savefile_name = $savefile->file_name;
 
-        // Update the file on the server without changing the file name
-        Storage::delete('saves/' . $savefile_name);
-        Storage::putFileAs(
-            'saves',
-            $request->file('savefile'),
-            $savefile_name
-        );
+        // Start a database transaction
+        DB::beginTransaction();
 
-        // Update the game ID if provided
-        if ($request->fk_id_game != null) {
-            $savefile->update([
-                'fk_id_game' => $request->fk_id_game,
-            ]);
+        try {
+            // Update the file on the server without changing the file name
+
+            // Check if the file already exists
+            if (Storage::exists($savefilePath)) {
+                // Backup the old savefile before overwriting it
+                $old_savefile = 'saves/' . $savefile_name;
+                $backupPath = 'backups/' . $savefile_name . '_' . time();
+                Storage::move($old_savefile, $backupPath);
+            }
+
+            // Overwrite the file
+            Storage::putFileAs(
+                'saves',
+                $request->file('savefile'),
+                $savefile_name
+            );
+
+            // Update the game ID if provided
+            if ($request->fk_id_game != null) {
+                $savefile->update([
+                    'fk_id_game' => $request->fk_id_game,
+                ]);
+            }
+
+            // Commit the transaction
+            DB::commit();
+
+            return $savefile;
+
+        } catch (\Exception $e) {
+            // Rollback the transaction if an exception occurs
+            DB::rollback();
+            return response('An error occurred while updating the file', 500);
         }
-
-        // To-do: backup the old savefile before updating it
-
-        return $savefile;
     }
 
     public function delete($id)
     {
+        // Start a database transaction
+        DB::beginTransaction();
+
         try {
             $savefile = Savefile::findOrFail($id);
             Storage::delete('saves/' . $savefile->file_name);
             $savefile->delete();
-        } catch (\Exception $e) {
-            return response('Savefile not found', 404);
-        }
 
-        return response('Savefile deleted', 200);
+            // Commit the transaction
+            DB::commit();
+
+            return response('Savefile deleted', 200);
+        } catch (\Exception $e) {
+            // Rollback the transaction if an exception occurs
+            DB::rollback();
+            return response('An error occurred while deleting the savefile', 500);
+        }
     }
 }
