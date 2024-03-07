@@ -26,6 +26,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('savefile');
+        // Backup the files adding the timestamp to the file name
+        $timestamp = date('Y_m_d_His');
+        // Copy each file individually
+        foreach (Storage::files('saves/') as $file) {
+            Storage::copy($file, 'backups/' . basename($file) . '_' . $timestamp . '.bak');
+        }
         Storage::deleteDirectory('saves/');
     }
 };

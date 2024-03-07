@@ -68,7 +68,7 @@ class SavefileController extends Controller
             // Commit the transaction
             DB::commit();
 
-            return $savefile;
+            return response($savefile, 201);
 
         } catch (\Exception $e) {
             // Rollback the transaction if an exception occurs
@@ -96,10 +96,10 @@ class SavefileController extends Controller
             // Update the file on the server without changing the file name
 
             // Check if the file already exists
-            if (Storage::exists($savefilePath)) {
+            $old_savefile = 'saves/' . $savefile_name;
+            if (Storage::exists($old_savefile)) {
                 // Backup the old savefile before overwriting it
-                $old_savefile = 'saves/' . $savefile_name;
-                $backupPath = 'backups/' . $savefile_name . '_' . time();
+                $backupPath = 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak';
                 Storage::move($old_savefile, $backupPath);
             }
 
@@ -120,7 +120,7 @@ class SavefileController extends Controller
             // Commit the transaction
             DB::commit();
 
-            return $savefile;
+            return response($savefile, 200);
 
         } catch (\Exception $e) {
             // Rollback the transaction if an exception occurs
