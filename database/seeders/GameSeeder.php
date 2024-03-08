@@ -13,8 +13,9 @@ class GameSeeder extends Seeder
     public function run(): void
     {
         $faker = \Faker\Factory::create();
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             \App\Models\Game::create([
+                'id' => $i,
                 'name' => $faker->unique()->firstName(null),
                 'created_at' => $faker->dateTimeThisYear,
                 'updated_at' => $faker->dateTimeThisYear,

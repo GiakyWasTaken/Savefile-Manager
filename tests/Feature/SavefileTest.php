@@ -8,6 +8,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Testing\Fluent\AssertableJson;
 use Faker\Factory;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Savefile;
 
 class SavefileTest extends TestCase
 {
@@ -23,7 +24,7 @@ class SavefileTest extends TestCase
 
     public function test_get_savefile(): void
     {
-        $response = $this->get('/api/savefile/2');
+        $response = $this->get('/api/savefile/1');
 
         $response
             ->assertStatus(200)
@@ -103,7 +104,7 @@ class SavefileTest extends TestCase
     {
         // Create a file
         $file = UploadedFile::fake()->create('savefile.txt', 256);
-        $file_name = \App\Models\Savefile::find(1)->file_name;
+        $file_name = Savefile::find(1)->file_name;
         $fk_id_game = strval(Factory::create()->numberBetween(1, 10));
 
         // Send the request
@@ -142,7 +143,7 @@ class SavefileTest extends TestCase
     public function test_delete_savefile(): void
     {
         // Create a backup of the file
-        $file_name = \App\Models\Savefile::find(1)->file_name;
+        $file_name = Savefile::find(1)->file_name;
         Storage::copy('saves/' . $file_name, 'saves/' . $file_name . '.bak');
 
         // Test the deletion
@@ -152,7 +153,6 @@ class SavefileTest extends TestCase
 
         // Restore the file
         Storage::move('saves/' . $file_name . '.bak', 'saves/' . $file_name);
-
     }
 
 }
