@@ -18,7 +18,7 @@ class GameController extends Controller
         return Game::find($id);
     }
 
-    public function create(Request $request)
+    public function store(Request $request)
     {
         return DB::transaction(function () use ($request) {
             return Game::create($request->all());
@@ -35,7 +35,7 @@ class GameController extends Controller
         });
     }
 
-    public function delete($id)
+    public function destroy($id)
     {
         return DB::transaction(function () use ($id) {
             Game::find($id)->delete();

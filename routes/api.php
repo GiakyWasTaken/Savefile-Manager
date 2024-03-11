@@ -19,19 +19,10 @@ use App\Http\Controllers\GameController;
 
 Route::post('/register', [UserAuthController::class, 'register']);
 Route::post('/login', [UserAuthController::class, 'login']);
-Route::group(['middleware' => ['auth:sanctum']], function () {
+Route::group(['middleware' => ['auth:api']], function () {
     Route::get('/user', [UserAuthController::class, 'user']);
     Route::get('/logout', [UserAuthController::class, 'logout']);
 });
 
-Route::get('savefile', [SavefileController::class, 'list']);
-Route::get('savefile/{id}', [SavefileController::class, 'get']);
-Route::post('savefile', [SavefileController::class, 'store']);
-Route::put('savefile/{id}', [SavefileController::class, 'update']);
-Route::delete('savefile/{id}', [SavefileController::class, 'delete']);
-
-Route::get('/game', [GameController::class, 'index']);
-Route::get('/game/{id}', [GameController::class, 'show']);
-Route::post('/game', [GameController::class, 'create']);
-Route::put('/game/{id}', [GameController::class, 'update']);
-Route::delete('/game/{id}', [GameController::class, 'delete']);
+Route::apiResource('savefile', SavefileController::class)->middleware('auth:api');
+Route::apiResource('game', GameController::class)->middleware('auth:api');

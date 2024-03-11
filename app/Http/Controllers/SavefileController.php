@@ -9,12 +9,12 @@ use Illuminate\Support\Facades\DB;
 
 class SavefileController extends Controller
 {
-    public function list()
+    public function index()
     {
         return Savefile::all();
     }
 
-    public function get($id)
+    public function show($id)
     {
         $savefile = Savefile::find($id);
 
@@ -129,7 +129,7 @@ class SavefileController extends Controller
         }
     }
 
-    public function delete($id)
+    public function destroy($id)
     {
         // Start a database transaction
         DB::beginTransaction();

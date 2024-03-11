@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserAuthController extends Controller
 {
-    public function register (Request $request)
+    public function register(Request $request)
     {
         // Validate the request
         $request->validate([
@@ -24,11 +24,14 @@ class UserAuthController extends Controller
             'password' => Hash::make($request->password)
         ]);
 
+        // Create a token for the user
+        $token = $user->createToken('user_token')->accessToken;
+
         // Return the user
-        return response($user, 201);
+        return response([ 'user' => $user, 'token' => $token ], 201);
     }
 
-    public function login (Request $request)
+    public function login(Request $request)
     {
         // Validate the request
         $request->validate([
@@ -40,7 +43,7 @@ class UserAuthController extends Controller
         if (auth()->attempt($request->only('email', 'password'))) {
             // Return the user
             $user = auth()->user();
-            $token = $user->createToken('user_token')->plainTextToken;
+            $token = $user->createToken('user_token')->accessToken;
             return response(['token' => $token], 200);
         }
 
@@ -48,13 +51,13 @@ class UserAuthController extends Controller
         return response('Invalid login details', 401);
     }
 
-    public function user (Request $request)
+    public function user(Request $request)
     {
         // Return the user
         return response($request->user(), 200);
     }
 
-    public function logout ()
+    public function logout()
     {
         // Log the user out
         auth()->user()->tokens()->delete();
