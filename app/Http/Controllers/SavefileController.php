@@ -44,8 +44,11 @@ class SavefileController extends Controller
         }
 
         // Check if the file already exists on the server or in the database
-        if (Storage::exists('saves/' . $savefile_name) || Savefile::where('file_name', $savefile_name)->exists()) {
-            return response('A file with that name already exists', 400);
+        if (Savefile::where('file_name', $savefile_name)->exists()) {
+            return response('A file with that name already exists on the database', 400);
+        }
+        if (Storage::exists('saves/' . $savefile_name)) {
+            return response('A file with that name already exists on the server', 400);
         }
 
         // Start a database transaction
@@ -58,6 +61,9 @@ class SavefileController extends Controller
                 $request->file('savefile'),
                 $savefile_name
             );
+
+            // Create backup file
+            Storage::copy('saves/' . $savefile_name, 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
 
             // Save the file to the database within the transaction
             $savefile = Savefile::create([
@@ -95,20 +101,15 @@ class SavefileController extends Controller
         try {
             // Update the file on the server without changing the file name
 
-            // Check if the file already exists
-            $old_savefile = 'saves/' . $savefile_name;
-            if (Storage::exists($old_savefile)) {
-                // Backup the old savefile before overwriting it
-                $backupPath = 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak';
-                Storage::move($old_savefile, $backupPath);
-            }
-
             // Overwrite the file
             Storage::putFileAs(
                 'saves',
                 $request->file('savefile'),
                 $savefile_name
             );
+
+            // Create backup file
+            Storage::copy('saves/' . $savefile_name, 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
 
             // Update the game ID if provided
             if ($request->fk_id_game != null) {

@@ -34,6 +34,8 @@ class SavefileSeeder extends Seeder
             );
             // Append some text to the file
             Storage::prepend('saves/' . $file_name, $faker->text(100));
+            // Create backup file
+            Storage::copy('saves/' . $file_name, 'backups/' . $file_name . '_' . date('Y_m_d_His') . '.bak');
         }
     }
 }

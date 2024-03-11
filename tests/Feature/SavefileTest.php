@@ -67,14 +67,27 @@ class SavefileTest extends TestCase
                     ->etc()
             );
 
-        // Check if the file was created
+        // Find the just created backup
+        $files = Storage::files('backups');
+        // Find all files that match the file name
+        $matchingFiles = array_filter($files, function ($file) use ($file_name) {
+            return strpos($file, $file_name) !== false;
+        });
+        // Save the last created file between the backups
+        if (!empty($matchingFiles)) {
+            $backup_file = end($matchingFiles);
+        }
+
+        // Check if the file and the backup were created
         $this->assertFileEquals(
             $file->getPathname(),
-            storage_path('app/saves/' . $file_name)
+            storage_path('app/saves/' . $file_name),
+            storage_path('app/backups/' . $file_name . '_' . date('Y_m_d_His') . '.bak')
         );
 
-        // Delete the file
+        // Delete the file and the backup
         Storage::delete('saves/' . $file_name);
+        Storage::delete($backup_file);
     }
 
     public function test_store_savefile_no_file_name(): void
@@ -104,14 +117,27 @@ class SavefileTest extends TestCase
                     ->etc()
             );
 
-        // Check if the file was created
+        // Find the just created backup
+        $files = Storage::files('backups');
+        // Find all files that match the file name
+        $matchingFiles = array_filter($files, function ($file) use ($file_name) {
+            return strpos($file, $file_name) !== false;
+        });
+        // Save the last created file between the backups
+        if (!empty($matchingFiles)) {
+            $backup_file = end($matchingFiles);
+        }
+
+        // Check if the file and the backup were created
         $this->assertFileEquals(
             $file->getPathname(),
-            storage_path('app/saves/' . $file_name)
+            storage_path('app/saves/' . $file_name),
+            storage_path('app/backups/' . $backup_file)
         );
 
-        // Delete the file
+        // Delete the file and the backup
         Storage::delete('saves/' . $file_name);
+        Storage::delete($backup_file);
     }
 
     public function test_update_savefile(): void
@@ -138,23 +164,26 @@ class SavefileTest extends TestCase
                     ->etc()
             );
 
-        // Check if the file was updated
-        $this->assertFileEquals(
-            $file->getPathname(),
-            storage_path('app/saves/' . $file_name)
-        );
-
-        // Delete the file
+        // Find the just created backup
         $files = Storage::files('backups');
         // Find all files that match the file name
         $matchingFiles = array_filter($files, function ($file) use ($file_name) {
             return strpos($file, $file_name) !== false;
         });
-        // Delete the last created file
+        // Save the last created file between the backups
         if (!empty($matchingFiles)) {
-            $lastCreatedFile = end($matchingFiles);
-            Storage::delete($lastCreatedFile);
+            $backup_file = end($matchingFiles);
         }
+
+        // Check if the file was updated and the backup was created
+        $this->assertFileEquals(
+            $file->getPathname(),
+            storage_path('app/saves/' . $file_name),
+            storage_path('app/backups/' . $file_name . '_' . date('Y_m_d_His') . '.bak')
+        );
+
+        // Delete the backup
+        Storage::delete($backup_file);
     }
 
     public function test_delete_savefile(): void
