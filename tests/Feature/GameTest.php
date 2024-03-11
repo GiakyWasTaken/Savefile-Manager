@@ -9,6 +9,8 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use Faker\Factory;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Game;
+use App\Models\User;
+use Laravel\Passport\Passport;
 
 class GameTest extends TestCase
 {
@@ -17,6 +19,9 @@ class GameTest extends TestCase
 
     public function test_list_game(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $response = $this->get('/api/game');
 
         $response->assertStatus(200);
@@ -24,6 +29,9 @@ class GameTest extends TestCase
 
     public function test_get_game(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $response = $this->get('/api/game/1');
 
         $response
@@ -36,6 +44,9 @@ class GameTest extends TestCase
 
     public function test_create_game(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $game = Game::factory()->create();
 
         $response = $this->post('/api/game', [
@@ -52,6 +63,9 @@ class GameTest extends TestCase
 
     public function test_update_game(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $game = Game::factory()->create();
 
         $response = $this->put('/api/game/1', [
@@ -68,6 +82,9 @@ class GameTest extends TestCase
 
     public function test_delete_game(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $game = Game::factory()->create();
 
         $response = $this->delete('/api/game/' . $game->id);

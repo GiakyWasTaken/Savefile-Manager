@@ -9,6 +9,8 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use Faker\Factory;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Savefile;
+use App\Models\User;
+use Laravel\Passport\Passport;
 
 class SavefileTest extends TestCase
 {
@@ -17,6 +19,9 @@ class SavefileTest extends TestCase
 
     public function test_list_savefile(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $response = $this->get('/api/savefile');
 
         $response->assertStatus(200);
@@ -24,6 +29,9 @@ class SavefileTest extends TestCase
 
     public function test_get_savefile(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $response = $this->get('/api/savefile/1');
 
         $response
@@ -33,6 +41,9 @@ class SavefileTest extends TestCase
 
     public function test_store_savefile(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $faker = Factory::create();
 
         // Create a file
@@ -68,6 +79,9 @@ class SavefileTest extends TestCase
 
     public function test_store_savefile_no_file_name(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         $faker = Factory::create();
 
         // Create a file
@@ -102,6 +116,9 @@ class SavefileTest extends TestCase
 
     public function test_update_savefile(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         // Create a file
         $file = UploadedFile::fake()->create('savefile.txt', 256);
         $file_name = Savefile::find(1)->file_name;
@@ -142,6 +159,9 @@ class SavefileTest extends TestCase
 
     public function test_delete_savefile(): void
     {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
         // Create a backup of the file
         $file_name = Savefile::find(1)->file_name;
         Storage::copy('saves/' . $file_name, 'saves/' . $file_name . '.bak');
