@@ -8,6 +8,7 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 use App\Models\User;
+use Faker\Factory;
 
 class UserTest extends TestCase
 {
@@ -16,9 +17,11 @@ class UserTest extends TestCase
 
     public function test_user_register()
     {
-        $name = 'John Doe';
-        $email = 'john@example.com';
-        $password = 'password123';
+        $faker = Factory::create();
+
+        $name = $faker->name;
+        $email = $faker->email;
+        $password = $faker->password;
 
         $response = $this->post('api/register', [
             'name' => $name,
@@ -44,7 +47,8 @@ class UserTest extends TestCase
 
     public function test_user_login()
     {
-        $password = 'password123';
+        $password = Factory::create()->password;
+
         $user = User::factory()->create([
             'password' => Hash::make($password)
         ]);
@@ -61,7 +65,23 @@ class UserTest extends TestCase
             );
     }
 
-    public function test_user_user()
+    public function test_user_login_invalid()
+    {
+        $password = Factory::create()->password;
+
+        $user = User::factory()->create([
+            'password' => Hash::make($password)
+        ]);
+
+        $response = $this->post('api/login', [
+            'email' => $user->email,
+            'password' => 'invalid-password',
+        ]);
+
+        $response->assertStatus(401);
+    }
+
+    public function test_get_user()
     {
         $user = User::factory()->create();
         $token = $user->createToken('user_token')->accessToken;

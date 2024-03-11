@@ -57,10 +57,10 @@ class UserAuthController extends Controller
         return response($request->user(), 200);
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        // Log the user out
-        auth()->user()->tokens()->delete();
+        // Delete the token used for authentication
+        $request->user()->token()->revoke();
 
         // Return a message
         return response('Logged out', 200);
