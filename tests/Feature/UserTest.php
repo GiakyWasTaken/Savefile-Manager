@@ -100,6 +100,17 @@ class UserTest extends TestCase
             );
     }
 
+    public function test_get_user_unauthorized()
+    {
+        $response = $this->get('api/user', [
+            'headers' => [
+                'Authorization' => 'Bearer invalid-token'
+            ]
+        ]);
+
+        $response->assertStatus(401);
+    }
+
     public function test_user_logout()
     {
         $user = User::factory()->create();
