@@ -78,15 +78,12 @@ class SavefileController extends Controller
         DB::beginTransaction();
 
         try {
-            // Save the file to the server
+            // Save the file to the temporary directory
             Storage::putFileAs(
-                $savefile_dir,
+                'tmp',
                 $request->file('savefile'),
                 $savefile_name
             );
-
-            // Create backup file
-            Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
 
             // Save the file to the database within the transaction
             $savefile = Savefile::create([
@@ -97,6 +94,11 @@ class SavefileController extends Controller
             // Commit the transaction
             DB::commit();
 
+            // Move the file to the game directory
+            Storage::move('tmp/' . $savefile_name, $savefile_dir . $savefile_name);
+
+            // Create backup file
+            Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
             return response($savefile, 201);
 
         } catch (\Exception $e) {
@@ -128,21 +130,24 @@ class SavefileController extends Controller
         // Start a database transaction
         DB::beginTransaction();
 
+        // Update the file on the server without changing the file name
         try {
-            // Update the file on the server without changing the file name
-
-            // Overwrite the file
+            // Save the file to the temporary directory
             Storage::putFileAs(
-                $savefile_dir,
+                'tmp',
                 $request->file('savefile'),
                 $savefile_name
             );
 
-            // Create backup file
-            Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
 
             // Commit the transaction
             DB::commit();
+
+            // Move the file to the game directory
+            Storage::move('tmp/' . $savefile_name, $savefile_dir . $savefile_name);
+
+            // Create backup file
+            Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
 
             return response($savefile, 200);
 
@@ -170,11 +175,11 @@ class SavefileController extends Controller
                 $savefile_dir = 'saves/null/';
             }
 
-            Storage::delete($savefile_dir . $savefile->file_name);
             $savefile->delete();
 
             // Commit the transaction
             DB::commit();
+            Storage::delete($savefile_dir . $savefile->file_name);
 
             return response('Savefile deleted', 200);
         } catch (\Exception $e) {
