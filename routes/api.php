@@ -18,7 +18,7 @@ use App\Http\Controllers\GameController;
 */
 
 Route::post('/register', [UserAuthController::class, 'register']);
-Route::post('/login', [UserAuthController::class, 'login']);
+Route::post('/login', [UserAuthController::class, 'login'])->name('login');
 Route::group(['middleware' => ['auth:api']], function () {
     Route::get('/user', [UserAuthController::class, 'user']);
     Route::get('/logout', [UserAuthController::class, 'logout']);

@@ -102,9 +102,9 @@ class UserTest extends TestCase
 
     public function test_get_user_unauthorized()
     {
-        $response = $this->get('api/user', [
+        $response = $this->getJson('api/user', [
             'headers' => [
-                'Authorization' => 'Bearer invalid-token'
+                'Authorization' => 'Bearer invalid-token',
             ]
         ]);
 
