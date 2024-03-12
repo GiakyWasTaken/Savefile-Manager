@@ -9,6 +9,7 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use Faker\Factory;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Savefile;
+use App\Models\Game;
 use App\Models\User;
 use Laravel\Passport\Passport;
 
@@ -67,27 +68,31 @@ class SavefileTest extends TestCase
                     ->etc()
             );
 
+        // Get the directory from the game
+        $game = Game::find($fk_id_game);
+        $savefile_dir = 'saves/' . $game->name . '/';
+
         // Find the just created backup
-        $files = Storage::files('backups');
+        $files = Storage::files($savefile_dir . 'backups');
         // Find all files that match the file name
         $matchingFiles = array_filter($files, function ($file) use ($file_name) {
             return strpos($file, $file_name) !== false;
         });
         // Save the last created file between the backups
         if (!empty($matchingFiles)) {
-            $backup_file = end($matchingFiles);
+            $backup_file_path = end($matchingFiles);
         }
 
         // Check if the file and the backup were created
         $this->assertFileEquals(
             $file->getPathname(),
-            storage_path('app/saves/' . $file_name),
-            storage_path('app/backups/' . $file_name . '_' . date('Y_m_d_His') . '.bak')
+            storage_path('app/' . $savefile_dir . $file_name),
+            storage_path('app/' . $backup_file_path)
         );
 
         // Delete the file and the backup
-        Storage::delete('saves/' . $file_name);
-        Storage::delete($backup_file);
+        Storage::delete($savefile_dir . $file_name);
+        Storage::delete($backup_file_path);
     }
 
     public function test_store_savefile_no_file_name(): void
@@ -117,27 +122,31 @@ class SavefileTest extends TestCase
                     ->etc()
             );
 
+        // Get the directory from the game
+        $game = Game::find($fk_id_game);
+        $savefile_dir = 'saves/' . $game->name . '/';
+
         // Find the just created backup
-        $files = Storage::files('backups');
+        $files = Storage::files($savefile_dir . 'backups');
         // Find all files that match the file name
         $matchingFiles = array_filter($files, function ($file) use ($file_name) {
             return strpos($file, $file_name) !== false;
         });
         // Save the last created file between the backups
         if (!empty($matchingFiles)) {
-            $backup_file = end($matchingFiles);
+            $backup_file_path = end($matchingFiles);
         }
 
         // Check if the file and the backup were created
         $this->assertFileEquals(
             $file->getPathname(),
-            storage_path('app/saves/' . $file_name),
-            storage_path('app/backups/' . $backup_file)
+            storage_path('app/' . $savefile_dir . $file_name),
+            storage_path('app/' . $backup_file_path)
         );
 
         // Delete the file and the backup
-        Storage::delete('saves/' . $file_name);
-        Storage::delete($backup_file);
+        Storage::delete($savefile_dir . $file_name);
+        Storage::delete($backup_file_path);
     }
 
     public function test_update_savefile(): void
@@ -147,13 +156,20 @@ class SavefileTest extends TestCase
 
         // Create a file
         $file = UploadedFile::fake()->create('savefile.txt', 256);
-        $file_name = Savefile::find(1)->file_name;
-        $fk_id_game = strval(Factory::create()->numberBetween(1, 10));
+        $savefile = Savefile::find(1);
+        $file_name = $savefile->file_name;
+        $fk_id_game = $savefile->fk_id_game;
+
+        // Get the directory from the game
+        $game = Game::find($fk_id_game);
+        $savefile_dir = 'saves/' . $game->name . '/';
+
+        // Save the previous file
+        Storage::copy($savefile_dir . $file_name, $savefile_dir . $file_name . '.bak');
 
         // Send the request
         $response = $this->put('/api/savefile/1', [
-            'savefile' => $file,
-            'fk_id_game' => $fk_id_game
+            'savefile' => $file
         ]);
 
         // Check the response
@@ -165,25 +181,28 @@ class SavefileTest extends TestCase
             );
 
         // Find the just created backup
-        $files = Storage::files('backups');
+        $files = Storage::files($savefile_dir . 'backups');
         // Find all files that match the file name
         $matchingFiles = array_filter($files, function ($file) use ($file_name) {
             return strpos($file, $file_name) !== false;
         });
         // Save the last created file between the backups
         if (!empty($matchingFiles)) {
-            $backup_file = end($matchingFiles);
+            $backup_file_path = end($matchingFiles);
         }
 
         // Check if the file was updated and the backup was created
         $this->assertFileEquals(
             $file->getPathname(),
-            storage_path('app/saves/' . $file_name),
-            storage_path('app/backups/' . $file_name . '_' . date('Y_m_d_His') . '.bak')
+            storage_path('app/' . $savefile_dir . $file_name),
+            storage_path('app/' . $backup_file_path)
         );
 
+        // Restore the file
+        Storage::move($savefile_dir . $file_name . '.bak', $savefile_dir . $file_name);
+
         // Delete the backup
-        Storage::delete($backup_file);
+        Storage::delete($backup_file_path);
     }
 
     public function test_delete_savefile(): void
@@ -191,17 +210,21 @@ class SavefileTest extends TestCase
         $user = User::factory()->create();
         Passport::actingAs($user);
 
-        // Create a backup of the file
-        $file_name = Savefile::find(1)->file_name;
-        Storage::copy('saves/' . $file_name, 'saves/' . $file_name . '.bak');
+        // Save the previous file
+        $savefile = Savefile::find(1);
+        $file_name = $savefile->file_name;
+        $fk_id_game = $savefile->fk_id_game;
+        $game = Game::find($fk_id_game);
+        $savefile_dir = 'saves/' . $game->name . '/';
+        Storage::copy($savefile_dir . $file_name, $savefile_dir . $file_name . '.bak');
 
         // Test the deletion
         $response = $this->delete('/api/savefile/1');
         $response->assertStatus(200);
-        $this->assertFileDoesNotExist('app/saves/' . $file_name);
+        $this->assertFileDoesNotExist('app/' . $savefile_dir . $file_name);
 
         // Restore the file
-        Storage::move('saves/' . $file_name . '.bak', 'saves/' . $file_name);
+        Storage::move($savefile_dir . $file_name . '.bak', $savefile_dir . $file_name);
     }
 
 }

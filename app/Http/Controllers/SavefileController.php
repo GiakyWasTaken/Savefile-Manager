@@ -5,13 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Savefile;
+use App\Models\Game;
 use Illuminate\Support\Facades\DB;
 
 class SavefileController extends Controller
 {
     public function index()
     {
-        return Savefile::all();
+        // Return all savefiles with the game name
+        return Savefile::join('game', 'savefile.fk_id_game', '=', 'game.id')
+            ->select('savefile.*', 'game.name as game_name')
+            ->get();
     }
 
     public function show($id)
@@ -22,7 +26,15 @@ class SavefileController extends Controller
             return response('Savefile not found', 404);
         }
 
-        return Storage::download('saves/' . $savefile->file_name);
+        // Get the directory from the game
+        $game = Game::find($savefile->fk_id_game);
+        if ($game) {
+            $savefile_dir = 'saves/' . $game->name . '/';
+        } else {
+            $savefile_dir = 'saves/null/';
+        }
+
+        return Storage::download($savefile_dir . $savefile->file_name);
     }
 
     public function store(Request $request)
@@ -43,11 +55,22 @@ class SavefileController extends Controller
             $request->merge(['file_name' => $savefile_name]);
         }
 
-        // Check if the file already exists on the server or in the database
-        if (Savefile::where('file_name', $savefile_name)->exists()) {
-            return response('A file with that name already exists on the database', 400);
+        $fk_id_game = $request->fk_id_game;
+
+        // Get the directory from the game
+        $game = Game::find($fk_id_game);
+        if ($game) {
+            $savefile_dir = 'saves/' . $game->name . '/';
+        } else {
+            $savefile_dir = 'saves/null/';
         }
-        if (Storage::exists('saves/' . $savefile_name)) {
+
+        // Check if the file with the same id game already exists on the server or in the database
+        if (Savefile::where('fk_id_game', $fk_id_game)->where('file_name', $savefile_name)->exists()) {
+            return response('A file with that name for that game already exists in the database', 400);
+        }
+
+        if (Storage::exists($savefile_dir . $savefile_name)) {
             return response('A file with that name already exists on the server', 400);
         }
 
@@ -57,18 +80,18 @@ class SavefileController extends Controller
         try {
             // Save the file to the server
             Storage::putFileAs(
-                'saves',
+                $savefile_dir,
                 $request->file('savefile'),
                 $savefile_name
             );
 
             // Create backup file
-            Storage::copy('saves/' . $savefile_name, 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
+            Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
 
             // Save the file to the database within the transaction
             $savefile = Savefile::create([
                 'file_name' => $savefile_name,
-                'fk_id_game' => $request->fk_id_game,
+                'fk_id_game' => $fk_id_game,
             ]);
 
             // Commit the transaction
@@ -87,13 +110,20 @@ class SavefileController extends Controller
     {
         // Validate the request
         $request->validate([
-            'savefile' => 'required|file',
-            'fk_id_game' => 'integer'
+            'savefile' => 'required|file'
         ]);
 
         // Get the savefile name from the database
         $savefile = Savefile::findOrFail($id);
         $savefile_name = $savefile->file_name;
+
+        // Get the directory from the game
+        $game = Game::find($savefile->fk_id_game);
+        if ($game) {
+            $savefile_dir = 'saves/' . $game->name . '/';
+        } else {
+            $savefile_dir = 'saves/null/';
+        }
 
         // Start a database transaction
         DB::beginTransaction();
@@ -103,20 +133,13 @@ class SavefileController extends Controller
 
             // Overwrite the file
             Storage::putFileAs(
-                'saves',
+                $savefile_dir,
                 $request->file('savefile'),
                 $savefile_name
             );
 
             // Create backup file
-            Storage::copy('saves/' . $savefile_name, 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
-
-            // Update the game ID if provided
-            if ($request->fk_id_game != null) {
-                $savefile->update([
-                    'fk_id_game' => $request->fk_id_game,
-                ]);
-            }
+            Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
 
             // Commit the transaction
             DB::commit();
@@ -136,8 +159,18 @@ class SavefileController extends Controller
         DB::beginTransaction();
 
         try {
+            // Get the savefile from the database
             $savefile = Savefile::findOrFail($id);
-            Storage::delete('saves/' . $savefile->file_name);
+
+            // Get the directory from the game
+            $game = Game::find($savefile->fk_id_game);
+            if ($game) {
+                $savefile_dir = 'saves/' . $game->name . '/';
+            } else {
+                $savefile_dir = 'saves/null/';
+            }
+
+            Storage::delete($savefile_dir . $savefile->file_name);
             $savefile->delete();
 
             // Commit the transaction
