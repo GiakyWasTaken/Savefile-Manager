@@ -13,8 +13,9 @@ class Savefile extends Model
 
     protected $fillable = [
         'file_name',
+        'file_path',
         'created_at',
         'updated_at',
-        'fk_id_game',
+        'fk_id_console',
     ];
 }
