@@ -9,7 +9,7 @@ use Illuminate\Testing\Fluent\AssertableJson;
 use Faker\Factory;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Savefile;
-use App\Models\Game;
+use App\Models\Console;
 use App\Models\User;
 use Laravel\Passport\Passport;
 
@@ -50,13 +50,15 @@ class SavefileTest extends TestCase
         // Create a file
         $file = UploadedFile::fake()->create('savefile.txt', 256);
         $file_name = $faker->word . '.' . $faker->fileExtension;
-        $fk_id_game = strval($faker->numberBetween(1, 10));
+        $file_path = $faker->word . '/' . $faker->word . '/';
+        $fk_id_console = strval($faker->numberBetween(1, 10));
 
         // Send the request
         $response = $this->post('/api/savefile', [
             'savefile' => $file,
             'file_name' => $file_name,
-            'fk_id_game' => $fk_id_game
+            'file_path' => $file_path,
+            'fk_id_console' => $fk_id_console
         ]);
 
         // Check the response
@@ -64,13 +66,14 @@ class SavefileTest extends TestCase
             ->assertStatus(201)
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('file_name', $file_name)
-                    ->where('fk_id_game', $fk_id_game)
+                    ->where('file_path', $file_path)
+                    ->where('fk_id_console', $fk_id_console)
                     ->etc()
             );
 
-        // Get the directory from the game
-        $game = Game::find($fk_id_game);
-        $savefile_dir = 'saves/' . $game->name . '/';
+        // Get the directory from the console and the file path
+        $console = Console::find($fk_id_console);
+        $savefile_dir = 'saves/' . $console->console_name . '/' . $file_path;
 
         // Find the just created backup
         $files = Storage::files($savefile_dir . 'backups');
@@ -84,6 +87,10 @@ class SavefileTest extends TestCase
         }
 
         // Check if the file and the backup were created
+        $this->assertFileExists(storage_path('app/' . $savefile_dir . $file_name));
+        $this->assertFileExists(storage_path('app/' . $backup_file_path));
+
+        // Check if the file and the backup are the same
         $this->assertFileEquals(
             $file->getPathname(),
             storage_path('app/' . $savefile_dir . $file_name),
@@ -95,7 +102,7 @@ class SavefileTest extends TestCase
         Storage::delete($backup_file_path);
     }
 
-    public function test_store_savefile_no_file_name(): void
+    public function test_store_savefile_no_file_name_and_path(): void
     {
         $user = User::factory()->create();
         Passport::actingAs($user);
@@ -105,12 +112,12 @@ class SavefileTest extends TestCase
         // Create a file
         $file_name = $faker->word . '.' . $faker->fileExtension;
         $file = UploadedFile::fake()->create($file_name, 256);
-        $fk_id_game = strval($faker->numberBetween(1, 10));
+        $fk_id_console = strval($faker->numberBetween(1, 10));
 
         // Send the request
         $response = $this->post('/api/savefile', [
             'savefile' => $file,
-            'fk_id_game' => $fk_id_game
+            'fk_id_console' => $fk_id_console
         ]);
 
         // Check the response
@@ -118,13 +125,14 @@ class SavefileTest extends TestCase
             ->assertStatus(201)
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('file_name', $file_name)
-                    ->where('fk_id_game', $fk_id_game)
+                    ->where('file_path', '/')
+                    ->where('fk_id_console', $fk_id_console)
                     ->etc()
             );
 
-        // Get the directory from the game
-        $game = Game::find($fk_id_game);
-        $savefile_dir = 'saves/' . $game->name . '/';
+        // Get the directory from the console
+        $console = Console::find($fk_id_console);
+        $savefile_dir = 'saves/' . $console->console_name . '/';
 
         // Find the just created backup
         $files = Storage::files($savefile_dir . 'backups');
@@ -138,6 +146,10 @@ class SavefileTest extends TestCase
         }
 
         // Check if the file and the backup were created
+        $this->assertFileExists(storage_path('app/' . $savefile_dir . $file_name));
+        $this->assertFileExists(storage_path('app/' . $backup_file_path));
+
+        // Check if the file and the backup are the same
         $this->assertFileEquals(
             $file->getPathname(),
             storage_path('app/' . $savefile_dir . $file_name),
@@ -158,11 +170,12 @@ class SavefileTest extends TestCase
         $file = UploadedFile::fake()->create('savefile.txt', 256);
         $savefile = Savefile::find(1);
         $file_name = $savefile->file_name;
-        $fk_id_game = $savefile->fk_id_game;
+        $file_path = $savefile->file_path;
+        $fk_id_console = $savefile->fk_id_console;
 
-        // Get the directory from the game
-        $game = Game::find($fk_id_game);
-        $savefile_dir = 'saves/' . $game->name . '/';
+        // Get the directory from the console
+        $console = Console::find($fk_id_console);
+        $savefile_dir = 'saves/' . $console->console_name . '/' . $file_path;
 
         // Save the previous file
         Storage::copy($savefile_dir . $file_name, $savefile_dir . $file_name . '.bak');
@@ -176,7 +189,9 @@ class SavefileTest extends TestCase
         $response
             ->assertStatus(200)
             ->assertJson(fn (AssertableJson $json) =>
-                $json->where('fk_id_game', $fk_id_game)
+                $json->where('file_name', $file_name)
+                    ->where('file_path', $file_path)
+                    ->where('fk_id_console', $fk_id_console)
                     ->etc()
             );
 
@@ -213,9 +228,10 @@ class SavefileTest extends TestCase
         // Save the previous file
         $savefile = Savefile::find(1);
         $file_name = $savefile->file_name;
-        $fk_id_game = $savefile->fk_id_game;
-        $game = Game::find($fk_id_game);
-        $savefile_dir = 'saves/' . $game->name . '/';
+        $file_path = $savefile->file_path;
+        $fk_id_console = $savefile->fk_id_console;
+        $console = Console::find($fk_id_console);
+        $savefile_dir = 'saves/' . $console->console_name . '/' . $file_path;
         Storage::copy($savefile_dir . $file_name, $savefile_dir . $file_name . '.bak');
 
         // Test the deletion
