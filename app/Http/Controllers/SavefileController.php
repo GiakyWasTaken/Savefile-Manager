@@ -5,16 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Savefile;
-use App\Models\Game;
+use App\Models\Console;
 use Illuminate\Support\Facades\DB;
 
 class SavefileController extends Controller
 {
     public function index()
     {
-        // Return all savefiles with the game name
-        return Savefile::join('game', 'savefile.fk_id_game', '=', 'game.id')
-            ->select('savefile.*', 'game.name as game_name')
+        // Return all savefiles with the console name
+        return Savefile::join('console', 'savefile.fk_id_console', '=', 'console.id')
+            ->select('savefile.*', 'console.console_name as console_name')
             ->get();
     }
 
@@ -26,12 +26,12 @@ class SavefileController extends Controller
             return response('Savefile not found', 404);
         }
 
-        // Get the directory from the game
-        $game = Game::find($savefile->fk_id_game);
-        if ($game) {
-            $savefile_dir = 'saves/' . $game->name . '/';
+        // Get the directory from the console
+        $console = Console::find($savefile->fk_id_console);
+        if ($console) {
+            $savefile_dir = 'saves/' . $console->console_name . '/' . $savefile->file_path;
         } else {
-            $savefile_dir = 'saves/null/';
+            $savefile_dir = 'saves/null/' . $savefile->file_path;
         }
 
         return Storage::download($savefile_dir . $savefile->file_name);
@@ -43,7 +43,8 @@ class SavefileController extends Controller
         $request->validate([
             'savefile' => 'required|file',
             'file_name' => 'string',
-            'fk_id_game' => 'integer'
+            'file_path' => 'string',
+            'fk_id_console' => 'required|integer'
         ]);
 
         // Set the file name
@@ -55,19 +56,27 @@ class SavefileController extends Controller
             $request->merge(['file_name' => $savefile_name]);
         }
 
-        $fk_id_game = $request->fk_id_game;
-
-        // Get the directory from the game
-        $game = Game::find($fk_id_game);
-        if ($game) {
-            $savefile_dir = 'saves/' . $game->name . '/';
+        // Set the file path
+        if ($request->has('file_path')) {
+            $savefile_path = $request->file_path;
         } else {
-            $savefile_dir = 'saves/null/';
+            // If no file path is provided, use the root path
+            $savefile_path = '/';
         }
 
-        // Check if the file with the same id game already exists on the server or in the database
-        if (Savefile::where('fk_id_game', $fk_id_game)->where('file_name', $savefile_name)->exists()) {
-            return response('A file with that name for that game already exists in the database', 400);
+        $fk_id_console = $request->fk_id_console;
+
+        // Get the directory from the console
+        $console = Console::find($fk_id_console);
+        if ($console) {
+            $savefile_dir = 'saves/' . $console->console_name . '/' . $savefile_path;
+        } else {
+            $savefile_dir = 'saves/.no_console/' . $savefile_path;
+        }
+
+        // Check if the file with the same id console already exists on the server or in the database
+        if (Savefile::where('fk_id_console', $fk_id_console)->where('file_name', $savefile_name)->exists()) {
+            return response('A file with that name for that console already exists in the database', 400);
         }
 
         if (Storage::exists($savefile_dir . $savefile_name)) {
@@ -88,13 +97,14 @@ class SavefileController extends Controller
             // Save the file to the database within the transaction
             $savefile = Savefile::create([
                 'file_name' => $savefile_name,
-                'fk_id_game' => $fk_id_game,
+                'file_path' => $savefile_path,
+                'fk_id_console' => $fk_id_console,
             ]);
 
             // Commit the transaction
             DB::commit();
 
-            // Move the file to the game directory
+            // Move the file to the console directory
             Storage::move('tmp/' . $savefile_name, $savefile_dir . $savefile_name);
 
             // Create backup file
@@ -104,7 +114,7 @@ class SavefileController extends Controller
         } catch (\Exception $e) {
             // Rollback the transaction if an exception occurs
             DB::rollback();
-            return response('An error occurred while saving the file', 500);
+            return response($e->getMessage(), 500);
         }
     }
 
@@ -118,13 +128,14 @@ class SavefileController extends Controller
         // Get the savefile name from the database
         $savefile = Savefile::findOrFail($id);
         $savefile_name = $savefile->file_name;
+        $savefile_path = $savefile->file_path;
 
-        // Get the directory from the game
-        $game = Game::find($savefile->fk_id_game);
-        if ($game) {
-            $savefile_dir = 'saves/' . $game->name . '/';
+        // Get the directory from the console
+        $console = Console::find($savefile->fk_id_console);
+        if ($console) {
+            $savefile_dir = 'saves/' . $console->console_name . '/' . $savefile_path;
         } else {
-            $savefile_dir = 'saves/null/';
+            $savefile_dir = 'saves/.no_console/' . $savefile_path;
         }
 
         // Start a database transaction
@@ -143,7 +154,7 @@ class SavefileController extends Controller
             // Commit the transaction
             DB::commit();
 
-            // Move the file to the game directory
+            // Move the file to the console directory
             Storage::move('tmp/' . $savefile_name, $savefile_dir . $savefile_name);
 
             // Create backup file
@@ -167,12 +178,12 @@ class SavefileController extends Controller
             // Get the savefile from the database
             $savefile = Savefile::findOrFail($id);
 
-            // Get the directory from the game
-            $game = Game::find($savefile->fk_id_game);
-            if ($game) {
-                $savefile_dir = 'saves/' . $game->name . '/';
+            // Get the directory from the console
+            $console = Console::find($savefile->fk_id_console);
+            if ($console) {
+                $savefile_dir = 'saves/' . $console->console_name . '/' . $savefile->file_path;
             } else {
-                $savefile_dir = 'saves/null/';
+                $savefile_dir = 'saves/.no_console/' . $savefile->file_path;
             }
 
             $savefile->delete();
