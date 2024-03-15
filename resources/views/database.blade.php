@@ -13,9 +13,9 @@
             print_r($data);
             echo "</pre>";
             echo "<br />";
-            echo "game table";
+            echo "console table";
             echo "<br />";
-            $data = DB::select('select * from game');
+            $data = DB::select('select * from console');
             echo "<pre>";
             print_r($data);
             echo "</pre>";

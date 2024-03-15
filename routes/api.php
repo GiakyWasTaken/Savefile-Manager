@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\SavefileController;
-use App\Http\Controllers\GameController;
+use App\Http\Controllers\ConsoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,4 +25,4 @@ Route::group(['middleware' => ['auth:api']], function () {
 });
 
 Route::apiResource('savefile', SavefileController::class)->middleware('auth:api');
-Route::apiResource('game', GameController::class)->middleware('auth:api');
+Route::apiResource('console', ConsoleController::class)->middleware('auth:api');
