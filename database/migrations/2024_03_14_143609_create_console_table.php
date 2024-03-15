@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('console', function (Blueprint $table) {
             $table->id();
-            $table->string('console_name');
+            $table->string('console_name')->unique();
             $table->timestamps();
         });
     }

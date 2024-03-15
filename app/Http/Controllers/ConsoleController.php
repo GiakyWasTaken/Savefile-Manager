@@ -22,7 +22,7 @@ class ConsoleController extends Controller
     {
         // Validate the request
         $request->validate([
-            'console_name' => 'required|string',
+            'console_name' => 'required|string|unique:console'
         ]);
 
         DB::beginTransaction();

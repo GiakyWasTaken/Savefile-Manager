@@ -17,7 +17,7 @@ class ConsoleFactory extends Factory
     public function definition(): array
     {
         return [
-            'console_name' => $this->faker->word(),
+            'console_name' => $this->faker->unique()->word(),
         ];
     }
 }

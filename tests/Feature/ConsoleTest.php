@@ -46,7 +46,7 @@ class ConsoleTest extends TestCase
         $user = User::factory()->create();
         Passport::actingAs($user);
 
-        $console = Console::factory()->create();
+        $console = Console::factory()->make();
 
         $response = $this->post('/api/console', [
             'console_name' => $console->console_name,
@@ -65,7 +65,7 @@ class ConsoleTest extends TestCase
         $user = User::factory()->create();
         Passport::actingAs($user);
 
-        $console = Console::factory()->create();
+        $console = Console::factory()->make();
 
         $response = $this->put('/api/console/1', [
             'console_name' => $console->console_name,
