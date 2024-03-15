@@ -34,7 +34,8 @@ class SavefileController extends Controller
             $savefile_dir = 'saves/null/' . $savefile->file_path;
         }
 
-        return Storage::download($savefile_dir . $savefile->file_name);
+        // Return the file and the json response
+        return response()->json($savefile, 200)->header('Content-Disposition', 'attachment; filename=' . $savefile->file_name);
     }
 
     public function store(Request $request)
@@ -76,11 +77,11 @@ class SavefileController extends Controller
 
         // Check if the file with the same id console already exists on the server or in the database
         if (Savefile::where('fk_id_console', $fk_id_console)->where('file_name', $savefile_name)->exists()) {
-            return response('A file with that name for that console already exists in the database', 400);
+            return response('A file with that name for that console already exists in the database', 409);
         }
 
         if (Storage::exists($savefile_dir . $savefile_name)) {
-            return response('A file with that name already exists on the server', 400);
+            return response('A file with that name already exists on the server', 409);
         }
 
         // Start a database transaction
