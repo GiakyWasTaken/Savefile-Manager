@@ -6,16 +6,18 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    protected $table = 'game';
+    protected $table = 'savefile';
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        Schema::create('game', function (Blueprint $table) {
+        Schema::create('savefile', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('file_name');
+            $table->string('file_path');
             $table->timestamps();
+            $table->foreignId('fk_id_console')->constrained('console');
         });
     }
 
@@ -24,6 +26,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('game');
+        Schema::dropIfExists('savefile');
+        Storage::deleteDirectory('saves/');
     }
 };
