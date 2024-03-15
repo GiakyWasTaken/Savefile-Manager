@@ -7,7 +7,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Testing\File;
 use App\Models\Savefile;
-use App\Models\Game;
+use App\Models\Console;
 
 class SavefileSeeder extends Seeder
 {
@@ -20,19 +20,21 @@ class SavefileSeeder extends Seeder
         for ($i = 1; $i <= 10; $i++) {
             // Save a file on the database
             $file_name = $faker->word . '.' . $faker->fileExtension;
-            $fk_id_game = $faker->numberBetween(1, 10);
+            $file_path = $faker->word . '/' . $faker->word . '/';
+            $fk_id_console = $faker->numberBetween(1, 10);
             Savefile::create([
                 'id' => $i,
                 'file_name' => $file_name,
+                'file_path' => $file_path,
                 'created_at' => $faker->dateTimeThisYear,
                 'updated_at' => $faker->dateTimeThisYear,
-                'fk_id_game' => $fk_id_game,
+                'fk_id_console' => $fk_id_console,
             ]);
             // Create the file on the server
             $file = File::fake()->create($file_name, 256);
-            // Get the directory from the game
-            $game = Game::find($fk_id_game);
-            $savefile_directory = 'saves/' . $game->name . '/';
+            // Get the directory from the console
+            $console = Console::find($fk_id_console);
+            $savefile_directory = 'saves/' . $console->console_name . '/' . $file_path;
             Storage::putFileAs(
                 $savefile_directory,
                 $file,
