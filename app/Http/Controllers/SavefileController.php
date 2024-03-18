@@ -18,7 +18,7 @@ class SavefileController extends Controller
             ->get();
     }
 
-    public function show($id)
+    public function show($id, Request $request)
     {
         $savefile = Savefile::find($id);
 
@@ -34,8 +34,14 @@ class SavefileController extends Controller
             $savefile_dir = 'saves/null/' . $savefile->file_path;
         }
 
-        // Return the file and the json response
-        return response()->json($savefile, 200)->header('Content-Disposition', 'attachment; filename=' . $savefile->file_name);
+        // Check if the request wants a JSON response
+        if ($request->wantsJson()) {
+            // Return the savefile as JSON
+            return response()->json($savefile);
+        } else {
+            // Return the file as a download
+            return Storage::download($savefile_dir . $savefile->file_name, $savefile->file_name);
+        }
     }
 
     public function store(Request $request)

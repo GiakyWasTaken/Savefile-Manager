@@ -40,6 +40,21 @@ class SavefileTest extends TestCase
             ->assertDownload();
     }
 
+    public function test_get_savefile_json(): void
+    {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
+        $response = $this->get('/api/savefile/1', ['Accept' => 'application/json']);
+
+        $response
+            ->assertStatus(200)
+            ->assertJson(fn (AssertableJson $json) =>
+                $json->where('id', 1)
+                    ->etc()
+            );
+    }
+
     public function test_store_savefile(): void
     {
         $user = User::factory()->create();
