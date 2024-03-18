@@ -60,6 +60,10 @@ class SavefileController extends Controller
         // Set the file path
         if ($request->has('file_path')) {
             $savefile_path = $request->file_path;
+            // Check if the savefile path ends with a slash and add it
+            if (substr($savefile_path, -1) !== '/') {
+                $savefile_path .= '/';
+            }
         } else {
             // If no file path is provided, use the root path
             $savefile_path = '/';
@@ -75,8 +79,8 @@ class SavefileController extends Controller
             $savefile_dir = 'saves/.no_console/' . $savefile_path;
         }
 
-        // Check if the file with the same id console already exists on the server or in the database
-        if (Savefile::where('fk_id_console', $fk_id_console)->where('file_name', $savefile_name)->exists()) {
+        // Check if the file with the same path and console already exists on the server or in the database
+        if (Savefile::where('fk_id_console', $fk_id_console)->where('file_name', $savefile_name)->where('file_path', $savefile_path)->exists()) {
             return response('A file with that name for that console already exists in the database', 409);
         }
 
@@ -90,7 +94,7 @@ class SavefileController extends Controller
         try {
             // Save the file to the temporary directory
             Storage::putFileAs(
-                'tmp',
+                'tmp/' . $savefile_dir,
                 $request->file('savefile'),
                 $savefile_name
             );
@@ -106,7 +110,7 @@ class SavefileController extends Controller
             DB::commit();
 
             // Move the file to the console directory
-            Storage::move('tmp/' . $savefile_name, $savefile_dir . $savefile_name);
+            Storage::move('tmp/' . $savefile_dir . $savefile_name, $savefile_dir . $savefile_name);
 
             // Create backup file
             Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');

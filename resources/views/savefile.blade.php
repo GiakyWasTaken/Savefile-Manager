@@ -18,7 +18,7 @@
             <caption> <b> All savefiles </b> </caption>
             <tr>
                 <th scope="col"> Savefile ID </td>
-                <th scope="col"> Savefile Name </td>
+                <th scope="col"> Savefile Path and Name </td>
                 <th scope="col"> Console Name </td>
             </tr>
             @foreach ($savefiles as $savefile)
@@ -27,7 +27,7 @@
                 @endphp
                 <tr>
                     <td> {{ $savefile->id }} </td>
-                    <td> {{ $savefile->file_name }} </td>
+                    <td> {{ $savefile->file_path . $savefile->file_name }} </td>
                     <td> {{ $console->console_name }} </td>
                 </tr>
             @endforeach
