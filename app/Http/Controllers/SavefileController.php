@@ -151,6 +151,8 @@ class SavefileController extends Controller
                 $savefile_name
             );
 
+            // Update the update date of the file in the database
+            $savefile->touch();
 
             // Commit the transaction
             DB::commit();
