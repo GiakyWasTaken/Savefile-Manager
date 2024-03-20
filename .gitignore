@@ -18,3 +18,7 @@ yarn-error.log
 /.idea
 /.vscode
 /*.sh
+*.crt
+*.csr
+*.key
+*.pem
