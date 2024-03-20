@@ -1,7 +1,0 @@
-2024/03/20 07:34:37 [error] 13#13: *4 access forbidden by rule, client: 172.18.0.1, server: laravel.dev.local, request: "GET /nginx_status HTTP/1.1", host: "127.0.0.1"
-2024/03/20 07:34:38 [error] 13#13: *4 access forbidden by rule, client: 172.18.0.1, server: laravel.dev.local, request: "GET /nginx_status HTTP/1.1", host: "127.0.0.1"
-2024/03/20 07:36:17 [error] 13#13: *11 access forbidden by rule, client: 172.18.0.1, server: laravel.dev.local, request: "GET /nginx_status HTTP/1.1", host: "127.0.0.1"
-2024/03/20 07:36:19 [error] 13#13: *11 access forbidden by rule, client: 172.18.0.1, server: laravel.dev.local, request: "GET /nginx_status HTTP/1.1", host: "127.0.0.1"
-2024/03/20 07:36:19 [error] 13#13: *11 access forbidden by rule, client: 172.18.0.1, server: laravel.dev.local, request: "GET /nginx_status HTTP/1.1", host: "127.0.0.1"
-2024/03/20 07:36:20 [error] 13#13: *11 access forbidden by rule, client: 172.18.0.1, server: laravel.dev.local, request: "GET /nginx_status HTTP/1.1", host: "127.0.0.1"
-2024/03/20 07:36:57 [error] 13#13: *20 access forbidden by rule, client: 172.18.0.1, server: laravel.dev.local, request: "GET /nginx_status HTTP/1.1", host: "127.0.0.1"
