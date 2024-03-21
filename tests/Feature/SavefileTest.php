@@ -66,6 +66,7 @@ class SavefileTest extends TestCase
         $file = UploadedFile::fake()->create('savefile.txt', 256);
         $file_name = $faker->word . '.' . $faker->fileExtension;
         $file_path = $faker->word . '/' . $faker->word . '/';
+        $updated_at = date('Y-m-d\TH:i:s.u\Z');
         $fk_id_console = strval($faker->numberBetween(1, 10));
 
         // Send the request
@@ -73,6 +74,7 @@ class SavefileTest extends TestCase
             'savefile' => $file,
             'file_name' => $file_name,
             'file_path' => $file_path,
+            'updated_at' => $updated_at,
             'fk_id_console' => $fk_id_console
         ]);
 
@@ -82,6 +84,7 @@ class SavefileTest extends TestCase
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('file_name', $file_name)
                     ->where('file_path', $file_path)
+                    ->where('updated_at', $updated_at)
                     ->where('fk_id_console', $fk_id_console)
                     ->etc()
             );
@@ -186,6 +189,7 @@ class SavefileTest extends TestCase
         $savefile = Savefile::find(1);
         $file_name = $savefile->file_name;
         $file_path = $savefile->file_path;
+        $updated_at = date('Y-m-d\TH:i:s.u\Z');
         $fk_id_console = $savefile->fk_id_console;
 
         // Get the directory from the console
@@ -197,7 +201,8 @@ class SavefileTest extends TestCase
 
         // Send the request
         $response = $this->put('/api/savefile/1', [
-            'savefile' => $file
+            'savefile' => $file,
+            'updated_at' => $updated_at
         ]);
 
         // Check the response
@@ -206,6 +211,7 @@ class SavefileTest extends TestCase
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('file_name', $file_name)
                     ->where('file_path', $file_path)
+                    ->where('updated_at', $updated_at)
                     ->where('fk_id_console', $fk_id_console)
                     ->etc()
             );

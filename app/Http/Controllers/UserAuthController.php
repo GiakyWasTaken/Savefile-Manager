@@ -79,6 +79,6 @@ class UserAuthController extends Controller
         Log::channel('daily')->info('LOGOUT: User ' . $request->user()->email . ' logged out');
 
         // Return a message
-        return response('LOGOUT: User ' . $request->user()->email . ' logged out', 200);
+        return response('User ' . $request->user()->email . ' logged out', 200);
     }
 }

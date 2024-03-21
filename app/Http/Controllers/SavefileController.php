@@ -60,6 +60,7 @@ class SavefileController extends Controller
             'savefile' => 'required|file',
             'file_name' => 'string',
             'file_path' => 'string',
+            'updated_at' => 'date',
             'fk_id_console' => 'required|integer'
         ]);
 
@@ -94,22 +95,37 @@ class SavefileController extends Controller
             $savefile_dir = 'saves/.no_console/' . $savefile_path;
         }
 
-        Log::channel('daily')->info('STORE: Savefile with name ' . $savefile_name . ' and path ' . $savefile_path .
-            ' for console with id ' . $fk_id_console . ' requested');
+        // Set the updated_at field
+        if ($request->has('updated_at')) {
+            $updated_at = $request->updated_at;
+        } else {
+            $updated_at = now();
+            $request->merge(['updated_at' => $updated_at]);
+        }
 
-        // Check if the file with the same path and console already exists on the server or in the database
-        if (Savefile::where('fk_id_console', $fk_id_console)->where('file_name', $savefile_name)->where('file_path', $savefile_path)->exists()) {
+        Log::channel('daily')->info('STORE: Savefile with name ' . $savefile_name . ' and path ' . $savefile_path .
+            ' for console with id ' . $fk_id_console . ' updated at ' . $updated_at . ' requested');
+
+        // Check if a file with the same path and console already exists in the database
+        $existingSavefile = Savefile::where('fk_id_console', $fk_id_console)
+                ->where('file_name', $savefile_name)
+                ->where('file_path', $savefile_path)
+                ->first();
+        if ($existingSavefile) {
             $message = 'File with path ' . $savefile_path . ' and name ' . $savefile_name .
-                ' for console with id ' . $fk_id_console . ' already exists in the database';
+                ' for console with id ' . $fk_id_console . ' updated at ' . $updated_at .
+                ' already exists in the database updated at ' . $existingSavefile->updated_at;
 
             Log::channel('daily')->warning('STORE: ' . $message);
 
             return response($message, 409);
         }
 
+        // Check if a file with the same path and console already exists on the server
         if (Storage::exists($savefile_dir . $savefile_name)) {
             $message = 'File with path ' . $savefile_path . ' and name ' . $savefile_name .
-                ' for console with id ' . $fk_id_console . ' already exists on the server';
+                ' for console with id ' . $fk_id_console . ' updated at ' . $updated_at .
+                ' already exists on the server';
 
             Log::channel('daily')->warning('STORE: ' . $message);
 
@@ -131,6 +147,7 @@ class SavefileController extends Controller
             $savefile = Savefile::create([
                 'file_name' => $savefile_name,
                 'file_path' => $savefile_path,
+                'updated_at' => $updated_at,
                 'fk_id_console' => $fk_id_console,
             ]);
 
@@ -141,7 +158,8 @@ class SavefileController extends Controller
             Storage::move('tmp/' . $savefile_dir . $savefile_name, $savefile_dir . $savefile_name);
 
             // Create backup file
-            Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
+            Storage::copy($savefile_dir . $savefile_name,
+                $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His', strtotime($updated_at)) . '.bak');
 
             Log::channel('daily')->info('STORE: Savefile ' . $savefile . ' created successfully');
 
@@ -164,7 +182,8 @@ class SavefileController extends Controller
     {
         // Validate the request
         $request->validate([
-            'savefile' => 'required|file'
+            'savefile' => 'required|file',
+            'updated_at' => 'date'
         ]);
 
         // Get the savefile name from the database
@@ -180,7 +199,15 @@ class SavefileController extends Controller
             $savefile_dir = 'saves/.no_console/' . $savefile_path;
         }
 
-        Log::channel('daily')->info('UPDATE: Savefile with id ' . $id . ' requested');
+        // Get the updated_at field
+        if ($request->has('updated_at')) {
+            $updated_at = $request->updated_at;
+        } else {
+            $updated_at = now();
+            $request->merge(['updated_at' => $updated_at]);
+        }
+
+        Log::channel('daily')->info('UPDATE: Savefile with id ' . $id . ' updated at ' . $updated_at . ' requested');
 
         // Start a database transaction
         DB::beginTransaction();
@@ -195,7 +222,8 @@ class SavefileController extends Controller
             );
 
             // Update the update date of the file in the database
-            $savefile->touch();
+            $savefile->updated_at = $updated_at;
+            $savefile->save();
 
             // Commit the transaction
             DB::commit();
@@ -204,7 +232,8 @@ class SavefileController extends Controller
             Storage::move('tmp/' . $savefile_name, $savefile_dir . $savefile_name);
 
             // Create backup file
-            Storage::copy($savefile_dir . $savefile_name, $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His') . '.bak');
+            Storage::copy($savefile_dir . $savefile_name,
+                $savefile_dir . 'backups/' . $savefile_name . '_' . date('Y_m_d_His', strtotime($updated_at)) . '.bak');
 
             Log::channel('daily')->info('UPDATE: Savefile ' . $savefile . ' updated successfully');
 
