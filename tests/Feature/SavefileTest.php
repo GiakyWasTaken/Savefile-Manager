@@ -66,7 +66,7 @@ class SavefileTest extends TestCase
         $file = UploadedFile::fake()->create('savefile.txt', 256);
         $file_name = $faker->word . '.' . $faker->fileExtension;
         $file_path = $faker->word . '/' . $faker->word . '/';
-        $updated_at = date('Y-m-d\TH:i:s.u\Z');
+        $updated_at = $faker->dateTimeThisYear()->format('Y-m-d\TH:i:s.u\Z');
         $fk_id_console = strval($faker->numberBetween(1, 10));
 
         // Send the request
@@ -77,6 +77,9 @@ class SavefileTest extends TestCase
             'updated_at' => $updated_at,
             'fk_id_console' => $fk_id_console
         ]);
+
+        // Go back one hour to match the database timezone
+        $updated_at = date('Y-m-d\TH:i:s.u\Z', strtotime($updated_at) - (3600 * 2));
 
         // Check the response
         $response
@@ -204,6 +207,9 @@ class SavefileTest extends TestCase
             'savefile' => $file,
             'updated_at' => $updated_at
         ]);
+
+        // Go back one hour to match the database timezone
+        $updated_at = date('Y-m-d\TH:i:s.u\Z', strtotime($updated_at) - (3600 * 2));
 
         // Check the response
         $response
