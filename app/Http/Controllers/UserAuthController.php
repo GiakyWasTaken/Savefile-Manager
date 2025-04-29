@@ -57,10 +57,12 @@ class UserAuthController extends Controller
             return response(['token' => $token], 200);
         }
 
-        Log::channel('daily')->warning('LOGIN: User with email ' . $request->email . ' login failed');
+        $message = 'User with email ' . $request->email . ' login failed';
+
+        Log::channel('daily')->warning('LOGIN: ' . $message);
 
         // Return an error
-        return response('User with email ' . $request->email . ' login failed', 401);
+        return response($message, 401);
     }
 
     public function user(Request $request)
@@ -76,9 +78,10 @@ class UserAuthController extends Controller
         // Delete the token used for authentication
         $request->user()->token()->revoke();
 
-        Log::channel('daily')->info('LOGOUT: User ' . $request->user()->email . ' logged out');
+        $message = 'User ' . $request->user()->email . ' logged out';
+        Log::channel('daily')->info('LOGOUT: ' . $message);
 
         // Return a message
-        return response('User ' . $request->user()->email . ' logged out', 200);
+        return response($message, 200);
     }
 }

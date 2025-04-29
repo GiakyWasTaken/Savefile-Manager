@@ -28,13 +28,15 @@ class SavefileController extends Controller
         $savefile = Savefile::find($id);
 
         if (!$savefile) {
-            Log::channel('daily')->warning('SHOW: Savefile with id {id} not found', ['id' => $id]);
+            $message = 'Savefile with id ' . $id . ' not found';
+            Log::channel('daily')->warning('SHOW: ' . $message);
 
-            return response('Savefile with id {id} not found', ['id' => $id], 404);
+            return response($message, 404);
         }
 
         // Get the directory from the console
         $console = Console::find($savefile->fk_id_console);
+
         if ($console) {
             $savefile_dir = 'saves/' . $console->console_name . '/' . $savefile->file_path;
         } else {
@@ -76,6 +78,7 @@ class SavefileController extends Controller
         // Set the file path
         if ($request->has('file_path')) {
             $savefile_path = $request->file_path;
+
             // Check if the savefile path ends with a slash and add it
             if (substr($savefile_path, -1) !== '/') {
                 $savefile_path .= '/';
@@ -89,6 +92,7 @@ class SavefileController extends Controller
 
         // Get the directory from the console
         $console = Console::find($fk_id_console);
+
         if ($console) {
             $savefile_dir = 'saves/' . $console->console_name . '/' . $savefile_path;
         } else {
@@ -111,6 +115,7 @@ class SavefileController extends Controller
                 ->where('file_name', $savefile_name)
                 ->where('file_path', $savefile_path)
                 ->first();
+
         if ($existingSavefile) {
             $message = 'File with path ' . $savefile_path . ' and name ' . $savefile_name .
                 ' for console with id ' . $fk_id_console . ' updated at ' . $updated_at .
@@ -174,7 +179,7 @@ class SavefileController extends Controller
 
             Log::channel('daily')->error('STORE: ' . $message, ['error' => $e->getMessage()]);
 
-            return response($message, ['error' => $e->getMessage()], 500);
+            return response($message, 500);
         }
     }
 
@@ -187,12 +192,21 @@ class SavefileController extends Controller
         ]);
 
         // Get the savefile name from the database
-        $savefile = Savefile::findOrFail($id);
+        $savefile = Savefile::find($id);
+
+        if (!$savefile) {
+            $message = 'Savefile with id ' . $id . ' not found';
+            Log::channel('daily')->warning('UPDATE: ' . $message);
+
+            return response($message, 404);
+        }
+
         $savefile_name = $savefile->file_name;
         $savefile_path = $savefile->file_path;
 
         // Get the directory from the console
         $console = Console::find($savefile->fk_id_console);
+
         if ($console) {
             $savefile_dir = 'saves/' . $console->console_name . '/' . $savefile_path;
         } else {
@@ -246,7 +260,7 @@ class SavefileController extends Controller
             $message = 'File with path ' . $savefile_path . ' and name ' . $savefile_name . ' failed';
             Log::channel('daily')->error('UPDATE: ' . $message, ['error' => $e->getMessage()]);
 
-            return response($message, ['error' => $e->getMessage()], 500);
+            return response($message, 500);
         }
     }
 
@@ -259,10 +273,18 @@ class SavefileController extends Controller
 
         try {
             // Get the savefile from the database
-            $savefile = Savefile::findOrFail($id);
+            $savefile = Savefile::find($id);
+
+            if (!$savefile) {
+                $message = 'Savefile with id ' . $id . ' not found';
+                Log::channel('daily')->warning('DESTROY: ' . $message);
+
+                return response($message, 404);
+            }
 
             // Get the directory from the console
             $console = Console::find($savefile->fk_id_console);
+
             if ($console) {
                 $savefile_dir = 'saves/' . $console->console_name . '/' . $savefile->file_path;
             } else {
@@ -275,17 +297,19 @@ class SavefileController extends Controller
             DB::commit();
             Storage::delete($savefile_dir . $savefile->file_name);
 
-            Log::channel('daily')->info('DESTROY: Savefile ' . $savefile . ' deleted successfully');
+            $message = 'Savefile with id ' . $id . ' deleted successfully';
+            Log::channel('daily')->info('DESTROY: ' . $message);
 
-            return response('Savefile ' . $savefile . ' deleted successfully', 200);
+            return response($message, 200);
 
         } catch (\Exception $e) {
             // Rollback the transaction if an exception occurs
             DB::rollback();
 
-            Log::channel('daily')->error('DESTROY: Savefile with id ' . $id . ' failed', ['error' => $e->getMessage()]);
+            $message = 'Savefile with id ' . $id . ' failed';
+            Log::channel('daily')->error('DESTROY: ' . $message, ['error' => $e->getMessage()]);
 
-            return response('Savefile with id ' . $id . ' failed', ['error' => $e->getMessage()], 500);
+            return response($message, 500);
         }
     }
 }
