@@ -78,9 +78,6 @@ class SavefileTest extends TestCase
             'fk_id_console' => $fk_id_console
         ]);
 
-        // Go back one hour to match the database timezone
-        $updated_at = date('Y-m-d\TH:i:s.u\Z', strtotime($updated_at) - (3600 * 2));
-
         // Check the response
         $response
             ->assertStatus(201)
@@ -192,7 +189,7 @@ class SavefileTest extends TestCase
         $savefile = Savefile::find(1);
         $file_name = $savefile->file_name;
         $file_path = $savefile->file_path;
-        // $updated_at = date('Y-m-d\TH:i:s.u\Z');
+        $updated_at = date('Y-m-d\TH:i:s.u\Z');
         $fk_id_console = $savefile->fk_id_console;
 
         // Get the directory from the console
@@ -205,11 +202,8 @@ class SavefileTest extends TestCase
         // Send the request
         $response = $this->put('/api/savefile/1', [
             'savefile' => $file,
-            // 'updated_at' => $updated_at
+            'updated_at' => $updated_at
         ]);
-
-        // Go back one hour to match the database timezone
-        // $updated_at = date('Y-m-d\TH:i:s.u\Z', strtotime($updated_at) - (3600 * 2));
 
         // Check the response
         $response
@@ -217,7 +211,7 @@ class SavefileTest extends TestCase
             ->assertJson(fn (AssertableJson $json) =>
                 $json->where('file_name', $file_name)
                     ->where('file_path', $file_path)
-                    // ->where('updated_at', $updated_at)
+                    ->where('updated_at', $updated_at)
                     ->where('fk_id_console', $fk_id_console)
                     ->etc()
             );
