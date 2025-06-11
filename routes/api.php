@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserAuthController;
 use App\Http\Controllers\SavefileController;
 use App\Http\Controllers\ConsoleController;
+use App\Http\Controllers\HealthCheckController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +17,8 @@ use App\Http\Controllers\ConsoleController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+Route::get('/health', [HealthCheckController::class, 'check']);
 
 Route::post('/register', [UserAuthController::class, 'register']);
 Route::post('/login', [UserAuthController::class, 'login'])->name('login');
