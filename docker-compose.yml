@@ -1,16 +1,15 @@
 services:
     laravel.savefile:
         build:
-            context: ./vendor/laravel/sail/runtimes/8.3
+            context: ./vendor/laravel/sail/runtimes/8.4
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP}'
-        image: sail-8.3/app
+        image: sail-8.4/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
-            - '8008:8008'
-            - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
+            - '${APP_PORT:-5172}:80'
         environment:
             WWWUSER: '${WWWUSER}'
             LARAVEL_SAIL: 1
@@ -24,6 +23,7 @@ services:
         depends_on:
             - mysql
             - phpmyadmin
+        restart: 'always'
     mysql:
         image: 'mysql/mysql-server:8.0'
         ports:
@@ -48,38 +48,16 @@ services:
                 - '-p${DB_PASSWORD}'
             retries: 3
             timeout: 5s
+        restart: 'always'
     phpmyadmin:
         image: 'phpmyadmin:latest'
         ports:
-            - 8080:80
+            - 5174:80
         networks:
             - sail
         environment:
             - PMA_ARBITRARY=1
-    nginx:
-        build:
-            context: "./docker-compose/nginx"
-        depends_on:
-            -   php-fpm
-        volumes:
-            - ${NGINX_SSL_PATH}:/etc/nginx/ssl
-            - ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-            - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
-            - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
-        ports:
-            - "${NGINX_HOST_HTTPS_PORT}:443"
-            - "${NGINX_HOST_HTTP_PORT}:80"
-        networks:
-            - sail
-    php-fpm:
-        build:
-            context: "./docker-compose/php-fpm"
-        volumes:
-            -   ${APP_CODE_PATH_HOST}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-        networks:
-            - sail
-        expose:
-            - "9000"
+        restart: 'always'
 networks:
     sail:
         driver: bridge

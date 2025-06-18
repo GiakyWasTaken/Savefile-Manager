@@ -28,5 +28,6 @@ return new class extends Migration
     {
         Schema::dropIfExists('savefile');
         Storage::deleteDirectory('saves/');
+        Storage::deleteDirectory('tmp/');
     }
 };

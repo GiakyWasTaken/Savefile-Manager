@@ -78,9 +78,6 @@ class SavefileTest extends TestCase
             'fk_id_console' => $fk_id_console
         ]);
 
-        // Go back one hour to match the database timezone
-        $updated_at = date('Y-m-d\TH:i:s.u\Z', strtotime($updated_at) - (3600 * 2));
-
         // Check the response
         $response
             ->assertStatus(201)
@@ -207,9 +204,6 @@ class SavefileTest extends TestCase
             'savefile' => $file,
             'updated_at' => $updated_at
         ]);
-
-        // Go back one hour to match the database timezone
-        $updated_at = date('Y-m-d\TH:i:s.u\Z', strtotime($updated_at) - (3600 * 2));
 
         // Check the response
         $response
