@@ -68,8 +68,6 @@
    ./vendor/bin/sail artisan serve
    ```
 
----
-
 ## 🔌 API Reference
 
 ### 🔐 Authentication
@@ -100,12 +98,14 @@
 
 This endpoint logs all health check calls and gracefully handles DB and storage issues. Returns HTTP 200 if everything is fine, 500 otherwise.
 
----
-
 ## 🧪 Client Scripts
 
 Looking for scripts to interact with this API? Check out the companion repo:
 
 🔗 [Savefile Manager Scripts](https://github.com/GiakyWasTaken/Savefile-Manager-Scripts)
 
----
+## 📜 Project History
+
+* 📦 `master` — Stable, production-ready branch containing tested releases and post-delivery fixes.
+* 🚧 `develop` — Active development branch for ongoing features, experiments, and integration work.
+* 🏷️ `Maribor-Release` — Tag for the original release created during the internship in Maribor, Slovenia — the first working version delivered in a month.
