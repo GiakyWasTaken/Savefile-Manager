@@ -6,6 +6,7 @@ services:
             args:
                 WWWGROUP: '${WWWGROUP}'
         image: sail-8.4/app
+        container_name: savefile-manager-laravel
         extra_hosts:
             - 'host.docker.internal:host-gateway'
         ports:
@@ -26,6 +27,7 @@ services:
         restart: 'always'
     mysql:
         image: 'mysql/mysql-server:8.0'
+        container_name: savefile-manager-mysql
         ports:
             - '${FORWARD_DB_PORT:-3306}:3306'
         environment:
@@ -51,6 +53,7 @@ services:
         restart: 'always'
     phpmyadmin:
         image: 'phpmyadmin:latest'
+        container_name: savefile-manager-phpmyadmin
         ports:
             - 5174:80
         networks:
