@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class UserAuthController extends Controller
 {
@@ -22,6 +23,7 @@ class UserAuthController extends Controller
 
         // Create a new user
         $user = User::create([
+            'id' => uniqid(),
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password)
