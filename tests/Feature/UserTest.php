@@ -86,9 +86,8 @@ class UserTest extends TestCase
         $user = User::factory()->create();
         $token = $user->createToken('user_token')->accessToken;
 
-        $response = $this->get('api/user', [
-            'Authorization' => "Bearer $token"
-        ]);
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->get('api/user');
 
         $response
             ->assertStatus(200)
@@ -102,11 +101,9 @@ class UserTest extends TestCase
 
     public function test_get_user_unauthorized()
     {
-        $response = $this->getJson('api/user', [
-            'headers' => [
-                'Authorization' => 'Bearer invalid-token',
-            ]
-        ]);
+        $response = $this->withHeader('Authorization', 'Bearer invalid-token')
+            ->withHeader('Accept', 'application/json')
+            ->get('api/user');
 
         $response->assertStatus(401);
     }
@@ -116,9 +113,8 @@ class UserTest extends TestCase
         $user = User::factory()->create();
         $token = $user->createToken('user_token')->accessToken;
 
-        $response = $this->get('api/logout', [
-            'Authorization' => "Bearer $token"
-        ]);
+        $response = $this->withHeader('Authorization', "Bearer $token")
+            ->get('api/logout');
 
         $response->assertStatus(200);
     }

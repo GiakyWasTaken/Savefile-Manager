@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Console;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -19,7 +20,7 @@ class SavefileFactory extends Factory
         return [
             'file_name' => $this->faker->word() . '.' . $this->faker->fileExtension(),
             'file_path' => 'saves/' . $this->faker->word() . '.' . $this->faker->fileExtension(),
-            'fk_id_console' => $this->faker->numberBetween(1, 10),
+            'fk_id_console' => Console::factory(),
         ];
     }
 }
