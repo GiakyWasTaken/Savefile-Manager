@@ -5,7 +5,7 @@ services:
             dockerfile: Dockerfile
             args:
                 WWWGROUP: '${WWWGROUP}'
-        image: sail-8.4/app
+        image: local/sail-8.4-app:latest
         container_name: savefile-manager-laravel
         extra_hosts:
             - 'host.docker.internal:host-gateway'
