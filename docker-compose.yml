@@ -19,8 +19,6 @@ services:
             IGNITION_LOCAL_SITES_PATH: '${PWD}'
         volumes:
             - '.:/var/www/html'
-        networks:
-            - sail
         depends_on:
             - mysql
             - phpmyadmin
@@ -40,8 +38,6 @@ services:
         volumes:
             - 'sail_mysql:/var/lib/mysql'
             - './vendor/laravel/sail/database/mysql/create-testing-database.sh:/docker-entrypoint-initdb.d/10-create-testing-database.sh'
-        networks:
-            - sail
         healthcheck:
             test:
                 - CMD
@@ -56,14 +52,10 @@ services:
         container_name: savefile-manager-phpmyadmin
         ports:
             - 5174:80
-        networks:
-            - sail
         environment:
             - PMA_ARBITRARY=1
         restart: 'always'
-networks:
-    sail:
-        driver: bridge
+
 volumes:
     sail_mysql:
         driver: local
